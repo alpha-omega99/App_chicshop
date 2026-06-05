@@ -7,76 +7,75 @@ module.exports = {
   ],
   theme: {
     extend: {
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
-      },
       colors: {
-        background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
-        card: {
-          DEFAULT: 'hsl(var(--card))',
-          foreground: 'hsl(var(--card-foreground))'
+        bg: "#FBF9F6",
+        surface: "#FFFFFF",
+        rose: {
+          50: "#FCF1F1",
+          100: "#F7DEDE",
+          200: "#EFC4C4",
+          300: "#E5B3B3",
+          400: "#D89595",
+          500: "#C56F6F",
         },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))'
+        emerald2: {
+          50: "#E6EEEA",
+          100: "#B8CDC1",
+          400: "#3D6B58",
+          500: "#1A3C2F",
+          900: "#0E2419",
         },
-        primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))'
+        gold: {
+          400: "#E4C76A",
+          500: "#D4AF37",
+          600: "#B8932A",
         },
-        secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          foreground: 'hsl(var(--secondary-foreground))'
-        },
-        muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))'
-        },
-        accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))'
-        },
-        destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))'
-        },
-        border: 'hsl(var(--border))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))'
-        }
+        bone: "#F2EBE5",
+        ink: "#1C1918",
+        inkLight: "#4A4542",
+        line: "#E6DFD5",
+        background: "#FBF9F6",
+        foreground: "#1C1918",
+        border: "#E6DFD5",
+        primary: { DEFAULT: "#E5B3B3", foreground: "#1A3C2F" },
+        secondary: { DEFAULT: "#1A3C2F", foreground: "#FFFFFF" },
+        accent: { DEFAULT: "#D4AF37", foreground: "#1C1918" },
+        muted: { DEFAULT: "#F2EBE5", foreground: "#78716C" },
+      },
+      fontFamily: {
+        serif: ["'Cormorant Garamond'", "serif"],
+        sans: ["'Outfit'", "sans-serif"],
+        calli: ["'Amiri'", "serif"],
+      },
+      borderRadius: {
+        xl2: "24px",
+        xl3: "32px",
+      },
+      boxShadow: {
+        soft: "0 20px 40px -15px rgba(26,60,47,0.10)",
+        emerald: "0 8px 30px rgba(26,60,47,0.30)",
+        rose: "0 8px 30px rgba(229,179,179,0.45)",
       },
       keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0'
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)'
-          }
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
         },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)'
-          },
-          to: {
-            height: '0'
-          }
-        }
+        floaty: {
+          "0%,100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        fadeUp: {
+          "0%": { opacity: 0, transform: "translateY(20px)" },
+          "100%": { opacity: 1, transform: "translateY(0)" },
+        },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out'
-      }
-    }
+        marquee: "marquee 30s linear infinite",
+        floaty: "floaty 4s ease-in-out infinite",
+        fadeUp: "fadeUp 0.7s ease-out both",
+      },
+    },
   },
   plugins: [require("tailwindcss-animate")],
 };
