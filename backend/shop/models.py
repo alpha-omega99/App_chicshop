@@ -2,6 +2,9 @@
 ChicShop+ Models - Boutique de tapis de prière islamiques
 """
 import uuid
+import secrets
+import string
+from typing import Any, Optional
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.text import slugify
@@ -23,10 +26,10 @@ class Category(models.Model):
         verbose_name_plural = 'catégories'
         ordering = ['order', 'name']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
@@ -136,16 +139,16 @@ class Product(models.Model):
             models.Index(fields=['-sales_count']),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
     @property
-    def discount_percent(self):
+    def discount_percent(self) -> Optional[int]:
         if self.original_price and self.original_price > self.price:
             return round((1 - float(self.price) / float(self.original_price)) * 100)
         return None
@@ -215,12 +218,11 @@ class Order(models.Model):
         verbose_name_plural = 'commandes'
         ordering = ['-created_at']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"#{self.reference} - {self.customer_first_name} {self.customer_last_name}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.reference:
-            import secrets, string
             suffix = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
             self.reference = f"CS-{suffix}"
         super().save(*args, **kwargs)
@@ -243,11 +245,11 @@ class OrderItem(models.Model):
         verbose_name = "ligne de commande"
         verbose_name_plural = "lignes de commande"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.product_name} ×{self.quantity}"
 
     @property
-    def line_total(self):
+    def line_total(self) -> Any:
         return self.unit_price * self.quantity
 
 
@@ -269,7 +271,7 @@ class Review(models.Model):
         verbose_name_plural = 'avis clients'
         ordering = ['-created_at']
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.author_name} - {self.product.name} ({self.rating}★)"
 
 
@@ -294,10 +296,10 @@ class PromoCode(models.Model):
         verbose_name = 'code promo'
         verbose_name_plural = 'codes promo'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.code} - -{self.discount_percent}%"
 
-    def is_valid(self, order_amount=0):
+    def is_valid(self, order_amount: float = 0) -> bool:
         from django.utils import timezone
         now = timezone.now()
         return (

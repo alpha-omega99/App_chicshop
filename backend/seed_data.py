@@ -1,9 +1,10 @@
 """
-Seed data ChicShop+ - Refactored into modular functions
+Seed data ChicShop+ - Modular functions with type hints
 """
 import os
 import django
 from datetime import timedelta
+from typing import Dict, List, Any
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'chicshop_config.settings')
 django.setup()
@@ -13,7 +14,7 @@ from shop.models import Category, Product, PromoCode, Review
 
 
 # === Image URLs ===
-LOCAL_TAPIS = {
+LOCAL_TAPIS: Dict[str, str] = {
     'banniere': "/static/shop/images/banniere.png",
     'tapis_bannier': "/static/shop/images/tapis_bannier.png",
     'tapisban': "/static/shop/images/tapisban.png",
@@ -23,7 +24,7 @@ LOCAL_TAPIS = {
 }
 
 
-def seed_categories():
+def seed_categories() -> Dict[str, Category]:
     """Crée les catégories de produits"""
     data = [
         ('packs', "Packs Cadeaux", "Expériences cadeaux complètes", "🎁", 1),
@@ -31,7 +32,7 @@ def seed_categories():
         ('chapelet', "Chapelets", "Tasbih artisanaux", "📿", 3),
         ('coran', "Coran", "Éditions bilingues", "📖", 4),
     ]
-    cats = {}
+    cats: Dict[str, Category] = {}
     for slug, name, desc, icon, order in data:
         cat, _ = Category.objects.update_or_create(
             slug=slug,
@@ -42,69 +43,84 @@ def seed_categories():
     return cats
 
 
-def seed_packs(categories):
+def _build_duo_essentiel() -> Dict[str, Any]:
+    """Définit le pack Duo Essentiel"""
+    return {
+        'slug': "duo-essentiel",
+        'name': "Le Duo Essentiel",
+        'tagline': "Pour débuter sa quête spirituelle",
+        'description': "Le pack idéal pour commencer votre voyage spirituel. Comprend un tapis de prière brodé avec votre prénom en calligraphie dorée, ainsi qu'un chapelet artisanal. Présenté dans un emballage cadeau soigné.",
+        'short_description': "Tapis brodé + Chapelet",
+        'price': 8990, 'original_price': 11200,
+        'badge': "NEW", 'emoji': "🌸",
+        'image_url': LOCAL_TAPIS['banniere'],
+        'gallery': [LOCAL_TAPIS['banniere'], LOCAL_TAPIS['banntapis'], LOCAL_TAPIS['bantapis2']],
+        'included_items': ["Tapis personnalisé (Nom & Prénom)", "Chapelet (Tasbih)", "Emballage cadeau soigné"],
+        'allows_embroidery': True, 'embroidery_required': True,
+        'stock_quantity': 50, 'is_featured': True, 'is_flash': True,
+        'rating': 4.9, 'review_count': 234,
+    }
+
+
+def _build_ecrin_serenite() -> Dict[str, Any]:
+    """Définit le pack L'Écrin de Sérénité"""
+    return {
+        'slug': "ecrin-de-serenite",
+        'name': "L'Écrin de Sérénité",
+        'tagline': "Le cadeau le plus offert pour marquer les cœurs",
+        'description': "Notre best-seller. L'expérience cadeau ultime pour célébrer l'Aïd, un mariage ou tout moment spécial. Chaque détail est pensé pour émouvoir.",
+        'short_description': "Pack premium avec message personnalisé",
+        'price': 11990, 'original_price': 14100,
+        'badge': "HOT", 'emoji': "✨",
+        'image_url': LOCAL_TAPIS['tapis_bannier'],
+        'gallery': [LOCAL_TAPIS['tapis_bannier'], LOCAL_TAPIS['tapisban'], LOCAL_TAPIS['banniere']],
+        'included_items': [
+            "Tapis Personnalisé (Nom & Prénom)", "Message personnalisé brodé",
+            "Saint Coran arabe/français", "Chapelet (Tasbih)",
+            "Zikromètre", "Emballage cadeau soigné"
+        ],
+        'allows_embroidery': True, 'embroidery_required': True,
+        'allows_personal_message': True,
+        'stock_quantity': 30, 'is_featured': True, 'is_flash': True,
+        'rating': 5.0, 'review_count': 412,
+    }
+
+
+def _build_heritage_royal() -> Dict[str, Any]:
+    """Définit le pack L'Héritage Royal"""
+    return {
+        'slug': "heritage-royal",
+        'name': "L'Héritage Royal",
+        'tagline': "Le luxe ultime — Mariage, Hajj, grandes occasions",
+        'description': "Le pack le plus prestigieux de notre collection. Pensé pour les moments inoubliables : mariages, départ au Hajj, cadeaux royaux.",
+        'short_description': "Pack luxe complet",
+        'price': 19850, 'original_price': 22000,
+        'badge': "PROMO", 'emoji': "👑",
+        'image_url': LOCAL_TAPIS['tapisban'],
+        'gallery': [LOCAL_TAPIS['tapisban'], LOCAL_TAPIS['tapis_bannier'], LOCAL_TAPIS['bantapis3']],
+        'included_items': [
+            "Tapis Personnalisé (Nom & Prénom)", "Message personnalisé brodé",
+            "Saint Coran arabe/français", "Chapelet + Zikromètre",
+            "Boubou marocain (H ou F)", "Parfum de luxe", "Emballage cadeau soigné"
+        ],
+        'allows_embroidery': True, 'embroidery_required': True,
+        'allows_personal_message': True,
+        'stock_quantity': 15, 'is_featured': True,
+        'rating': 4.9, 'review_count': 156,
+    }
+
+
+def seed_packs(categories: Dict[str, Category]) -> None:
     """Crée les packs cadeaux"""
     packs = [
-        {
-            'slug': "duo-essentiel",
-            'name': "Le Duo Essentiel",
-            'tagline': "Pour débuter sa quête spirituelle",
-            'description': "Le pack idéal pour commencer votre voyage spirituel. Comprend un tapis de prière brodé avec votre prénom en calligraphie dorée, ainsi qu'un chapelet artisanal. Présenté dans un emballage cadeau soigné.",
-            'short_description': "Tapis brodé + Chapelet",
-            'price': 8990, 'original_price': 11200,
-            'badge': "NEW", 'emoji': "🌸",
-            'image_url': LOCAL_TAPIS['banniere'],
-            'gallery': [LOCAL_TAPIS['banniere'], LOCAL_TAPIS['banntapis'], LOCAL_TAPIS['bantapis2']],
-            'included_items': ["Tapis personnalisé (Nom & Prénom)", "Chapelet (Tasbih)", "Emballage cadeau soigné"],
-            'allows_embroidery': True, 'embroidery_required': True,
-            'stock_quantity': 50, 'is_featured': True, 'is_flash': True,
-            'rating': 4.9, 'review_count': 234,
-        },
-        {
-            'slug': "ecrin-de-serenite",
-            'name': "L'Écrin de Sérénité",
-            'tagline': "Le cadeau le plus offert pour marquer les cœurs",
-            'description': "Notre best-seller. L'expérience cadeau ultime pour célébrer l'Aïd, un mariage ou tout moment spécial. Chaque détail est pensé pour émouvoir.",
-            'short_description': "Pack premium avec message personnalisé",
-            'price': 11990, 'original_price': 14100,
-            'badge': "HOT", 'emoji': "✨",
-            'image_url': LOCAL_TAPIS['tapis_bannier'],
-            'gallery': [LOCAL_TAPIS['tapis_bannier'], LOCAL_TAPIS['tapisban'], LOCAL_TAPIS['banniere']],
-            'included_items': [
-                "Tapis Personnalisé (Nom & Prénom)", "Message personnalisé brodé",
-                "Saint Coran arabe/français", "Chapelet (Tasbih)",
-                "Zikromètre", "Emballage cadeau soigné"
-            ],
-            'allows_embroidery': True, 'embroidery_required': True,
-            'allows_personal_message': True,
-            'stock_quantity': 30, 'is_featured': True, 'is_flash': True,
-            'rating': 5.0, 'review_count': 412,
-        },
-        {
-            'slug': "heritage-royal",
-            'name': "L'Héritage Royal",
-            'tagline': "Le luxe ultime — Mariage, Hajj, grandes occasions",
-            'description': "Le pack le plus prestigieux de notre collection. Pensé pour les moments inoubliables : mariages, départ au Hajj, cadeaux royaux.",
-            'short_description': "Pack luxe complet",
-            'price': 19850, 'original_price': 22000,
-            'badge': "PROMO", 'emoji': "👑",
-            'image_url': LOCAL_TAPIS['tapisban'],
-            'gallery': [LOCAL_TAPIS['tapisban'], LOCAL_TAPIS['tapis_bannier'], LOCAL_TAPIS['bantapis3']],
-            'included_items': [
-                "Tapis Personnalisé (Nom & Prénom)", "Message personnalisé brodé",
-                "Saint Coran arabe/français", "Chapelet + Zikromètre",
-                "Boubou marocain (H ou F)", "Parfum de luxe", "Emballage cadeau soigné"
-            ],
-            'allows_embroidery': True, 'embroidery_required': True,
-            'allows_personal_message': True,
-            'stock_quantity': 15, 'is_featured': True,
-            'rating': 4.9, 'review_count': 156,
-        },
+        _build_duo_essentiel(),
+        _build_ecrin_serenite(),
+        _build_heritage_royal(),
     ]
     _create_products(packs, categories['packs'])
 
 
-def seed_tapis(categories):
+def seed_tapis(categories: Dict[str, Category]) -> None:
     """Crée les tapis individuels"""
     tapis = [
         {
@@ -156,7 +172,7 @@ def seed_tapis(categories):
     _create_products(tapis, categories['tapis'])
 
 
-def seed_chapelets(categories):
+def seed_chapelets(categories: Dict[str, Category]) -> None:
     """Crée les chapelets"""
     chapelets = [
         {
@@ -182,7 +198,7 @@ def seed_chapelets(categories):
     _create_products(chapelets, categories['chapelet'])
 
 
-def seed_coran(categories):
+def seed_coran(categories: Dict[str, Category]) -> None:
     """Crée les Corans"""
     corans = [
         {
@@ -198,7 +214,7 @@ def seed_coran(categories):
     _create_products(corans, categories['coran'])
 
 
-def _create_products(items, category):
+def _create_products(items: List[Dict[str, Any]], category: Category) -> None:
     """Helper to create products in bulk"""
     for item in items:
         Product.objects.update_or_create(
@@ -207,7 +223,7 @@ def _create_products(items, category):
         )
 
 
-def seed_reviews():
+def seed_reviews() -> None:
     """Crée les avis clients"""
     Review.objects.all().delete()
     
@@ -233,7 +249,7 @@ def seed_reviews():
     print(f"✓ {Review.objects.count()} avis")
 
 
-def seed_promo_codes():
+def seed_promo_codes() -> None:
     """Crée les codes promotionnels"""
     codes = [
         ("CHICSHOP15", 15, 1000, 5000, 365),
@@ -254,11 +270,11 @@ def seed_promo_codes():
     print(f"✓ {PromoCode.objects.count()} codes promo")
 
 
-def seed():
+def seed() -> None:
     """Orchestrateur principal - exécute toutes les étapes"""
     print("🌸 Seeding ChicShop+...")
     
-    Product.objects.all().delete()
+    # Update existing products plutôt que delete - protège les commandes existantes
     
     categories = seed_categories()
     seed_packs(categories)

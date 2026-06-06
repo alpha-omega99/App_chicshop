@@ -1,8 +1,9 @@
 """
 Vues HTML pour ChicShop+ - Django templates classiques
 """
+from typing import Any, Dict, List, Optional, Tuple
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpRequest, HttpResponse
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.contrib import messages
@@ -17,21 +18,24 @@ from .models import Category, Product, Order, OrderItem, Review, PromoCode
 # CART HELPERS (session-based)
 # ============================================================
 
-def get_cart(request):
+def get_cart(request: HttpRequest) -> List[Dict[str, Any]]:
     """Récupère le panier depuis la session"""
     return request.session.get('cart', [])
 
 
-def save_cart(request, cart):
+def save_cart(request: HttpRequest, cart: List[Dict[str, Any]]) -> None:
+    """Sauvegarde le panier dans la session"""
     request.session['cart'] = cart
     request.session.modified = True
 
 
-def cart_subtotal(cart):
-    return sum(Decimal(str(item['price'])) * item['quantity'] for item in cart)
+def cart_subtotal(cart: List[Dict[str, Any]]) -> Decimal:
+    """Calcule le sous-total du panier"""
+    return sum((Decimal(str(item['price'])) * item['quantity'] for item in cart), Decimal('0'))
 
 
-def cart_count(cart):
+def cart_count(cart: List[Dict[str, Any]]) -> int:
+    """Compte le nombre total d'articles dans le panier"""
     return sum(item['quantity'] for item in cart)
 
 
@@ -39,7 +43,7 @@ def cart_count(cart):
 # PAGES HTML
 # ============================================================
 
-def home(request):
+def home(request: HttpRequest) -> HttpResponse:
     """Page d'accueil ChicShop+"""
     featured = Product.objects.filter(is_active=True, is_featured=True).select_related('category')[:8]
     packs = Product.objects.filter(is_active=True, category__slug='packs').select_related('category')[:3]
@@ -87,7 +91,7 @@ def home(request):
     })
 
 
-def catalog(request, category_slug=None):
+def catalog(request: HttpRequest, category_slug: Optional[str] = None) -> HttpResponse:
     """Catalogue produits"""
     products = Product.objects.filter(is_active=True, is_available=True).select_related('category')
     current_category = None
@@ -143,7 +147,7 @@ def product_detail(request, slug):
     })
 
 
-def personalize(request):
+def personalize(request: HttpRequest) -> HttpResponse:
     """Page de personnalisation"""
     tapis = Product.objects.filter(is_active=True, category__slug='tapis')
     return render(request, 'shop/personalize.html', {
@@ -202,7 +206,7 @@ def add_to_cart(request):
 
 
 @require_POST
-def update_cart(request):
+def update_cart(request: HttpRequest) -> JsonResponse:
     """Mettre à jour la quantité d'un item"""
     data = json.loads(request.body)
     index = int(data.get('index', -1))
@@ -221,7 +225,7 @@ def update_cart(request):
 
 
 @require_POST
-def remove_from_cart(request):
+def remove_from_cart(request: HttpRequest) -> JsonResponse:
     """Retirer un item"""
     data = json.loads(request.body)
     index = int(data.get('index', -1))
@@ -238,7 +242,7 @@ def remove_from_cart(request):
     })
 
 
-def cart_view(request):
+def cart_view(request: HttpRequest) -> HttpResponse:
     """Page panier"""
     cart = get_cart(request)
     return render(request, 'shop/cart.html', {
@@ -247,7 +251,7 @@ def cart_view(request):
     })
 
 
-def _apply_promo_code(code_str, subtotal):
+def _apply_promo_code(code_str: str, subtotal: Decimal) -> Tuple[Decimal, str]:
     """Applique un code promo et retourne le montant de remise.
     Retourne (discount_amount, promo_code_str) ou (Decimal('0'), '').
     """
@@ -269,12 +273,19 @@ def _apply_promo_code(code_str, subtotal):
     return discount, code_str
 
 
-def _calculate_delivery_fee(subtotal):
+def _calculate_delivery_fee(subtotal: Decimal) -> Decimal:
     """Frais de livraison : gratuit au-dessus de 15000 F CFA."""
     return Decimal('0') if subtotal >= Decimal('15000') else Decimal('1500')
 
 
-def _create_order_from_form(request, cart, subtotal, discount, total, promo_code_str):
+def _create_order_from_form(
+    request: HttpRequest,
+    cart: List[Dict[str, Any]],
+    subtotal: Decimal,
+    discount: Decimal,
+    total: Decimal,
+    promo_code_str: str,
+) -> Order:
     """Crée l'objet Order à partir des données du formulaire."""
     return Order.objects.create(
         customer_first_name=request.POST.get('first_name', ''),
@@ -292,7 +303,7 @@ def _create_order_from_form(request, cart, subtotal, discount, total, promo_code
     )
 
 
-def _create_order_items(order, cart):
+def _create_order_items(order: Order, cart: List[Dict[str, Any]]) -> None:
     """Crée les OrderItem associés à une commande."""
     for item in cart:
         product = Product.objects.get(slug=item['slug'])
@@ -306,7 +317,9 @@ def _create_order_items(order, cart):
         )
 
 
-def _process_checkout(request, cart):
+def _process_checkout(
+    request: HttpRequest, cart: List[Dict[str, Any]]
+) -> Tuple[Optional[Order], Optional[str]]:
     """Traite la soumission du formulaire de checkout.
     Retourne (order, error_message) où l'un des deux est None.
     """
@@ -326,7 +339,7 @@ def _process_checkout(request, cart):
         return None, f"Erreur: {e}"
 
 
-def checkout(request):
+def checkout(request: HttpRequest) -> HttpResponse:
     """Page checkout - GET affiche le formulaire, POST crée la commande."""
     cart = get_cart(request)
     if not cart:
@@ -348,14 +361,14 @@ def checkout(request):
     })
 
 
-def order_success(request, reference):
+def order_success(request: HttpRequest, reference: str) -> HttpResponse:
     """Confirmation de commande"""
     order = get_object_or_404(Order, reference=reference)
     return render(request, 'shop/order_success.html', {'order': order})
 
 
 @require_POST
-def validate_promo(request):
+def validate_promo(request: HttpRequest) -> JsonResponse:
     """Valider un code promo (AJAX)"""
     data = json.loads(request.body)
     code = data.get('code', '').strip().upper()
