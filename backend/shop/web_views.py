@@ -247,73 +247,104 @@ def cart_view(request):
     })
 
 
+def _apply_promo_code(code_str, subtotal):
+    """Applique un code promo et retourne le montant de remise.
+    Retourne (discount_amount, promo_code_str) ou (Decimal('0'), '').
+    """
+    if not code_str:
+        return Decimal('0'), ''
+    
+    code_str = code_str.strip().upper()
+    try:
+        promo = PromoCode.objects.get(code=code_str)
+    except PromoCode.DoesNotExist:
+        return Decimal('0'), ''
+    
+    if not promo.is_valid(float(subtotal)):
+        return Decimal('0'), ''
+    
+    discount = subtotal * Decimal(promo.discount_percent) / Decimal('100')
+    promo.current_uses += 1
+    promo.save()
+    return discount, code_str
+
+
+def _calculate_delivery_fee(subtotal):
+    """Frais de livraison : gratuit au-dessus de 15000 F CFA."""
+    return Decimal('0') if subtotal >= Decimal('15000') else Decimal('1500')
+
+
+def _create_order_from_form(request, cart, subtotal, discount, total, promo_code_str):
+    """Crée l'objet Order à partir des données du formulaire."""
+    return Order.objects.create(
+        customer_first_name=request.POST.get('first_name', ''),
+        customer_last_name=request.POST.get('last_name', ''),
+        customer_email=request.POST.get('email', ''),
+        customer_phone=request.POST.get('phone', ''),
+        delivery_address=request.POST.get('address', ''),
+        delivery_city=request.POST.get('city', 'Abidjan'),
+        delivery_instructions=request.POST.get('instructions', ''),
+        subtotal=subtotal,
+        discount_amount=discount,
+        total_amount=total,
+        promo_code=promo_code_str,
+        payment_method=request.POST.get('payment_method', 'cash'),
+    )
+
+
+def _create_order_items(order, cart):
+    """Crée les OrderItem associés à une commande."""
+    for item in cart:
+        product = Product.objects.get(slug=item['slug'])
+        OrderItem.objects.create(
+            order=order,
+            product=product,
+            product_name=product.name,
+            unit_price=Decimal(item['price']),
+            quantity=item['quantity'],
+            embroidery_name=item.get('embroidery_name', ''),
+        )
+
+
+def _process_checkout(request, cart):
+    """Traite la soumission du formulaire de checkout.
+    Retourne (order, error_message) où l'un des deux est None.
+    """
+    subtotal = cart_subtotal(cart)
+    promo_str = request.POST.get('promo_code', '')
+    discount, promo_code_str = _apply_promo_code(promo_str, subtotal)
+    delivery_fee = _calculate_delivery_fee(subtotal)
+    total = subtotal - discount + delivery_fee
+    
+    try:
+        order = _create_order_from_form(request, cart, subtotal, discount, total, promo_code_str)
+        _create_order_items(order, cart)
+        return order, None
+    except Product.DoesNotExist:
+        return None, "Un produit est introuvable"
+    except Exception as e:
+        return None, f"Erreur: {e}"
+
+
 def checkout(request):
-    """Page checkout"""
+    """Page checkout - GET affiche le formulaire, POST crée la commande."""
     cart = get_cart(request)
     if not cart:
         return redirect('shop:catalog')
     
     if request.method == 'POST':
-        # Créer la commande
-        try:
-            subtotal = cart_subtotal(cart)
-            
-            # Code promo
-            discount_amount = Decimal('0')
-            promo_code_str = request.POST.get('promo_code', '').strip().upper()
-            if promo_code_str:
-                try:
-                    promo = PromoCode.objects.get(code=promo_code_str)
-                    if promo.is_valid(float(subtotal)):
-                        discount_amount = subtotal * Decimal(promo.discount_percent) / Decimal('100')
-                        promo.current_uses += 1
-                        promo.save()
-                except PromoCode.DoesNotExist:
-                    pass
-            
-            delivery_fee = Decimal('0') if subtotal >= Decimal('15000') else Decimal('1500')
-            total = subtotal - discount_amount + delivery_fee
-            
-            order = Order.objects.create(
-                customer_first_name=request.POST.get('first_name', ''),
-                customer_last_name=request.POST.get('last_name', ''),
-                customer_email=request.POST.get('email', ''),
-                customer_phone=request.POST.get('phone', ''),
-                delivery_address=request.POST.get('address', ''),
-                delivery_city=request.POST.get('city', 'Abidjan'),
-                delivery_instructions=request.POST.get('instructions', ''),
-                subtotal=subtotal,
-                discount_amount=discount_amount,
-                total_amount=total,
-                promo_code=promo_code_str,
-                payment_method=request.POST.get('payment_method', 'cash'),
-            )
-            
-            for item in cart:
-                product = Product.objects.get(slug=item['slug'])
-                OrderItem.objects.create(
-                    order=order,
-                    product=product,
-                    product_name=product.name,
-                    unit_price=Decimal(item['price']),
-                    quantity=item['quantity'],
-                    embroidery_name=item.get('embroidery_name', ''),
-                )
-            
-            # Vider le panier
+        order, error = _process_checkout(request, cart)
+        if error:
+            messages.error(request, error)
+        else:
             save_cart(request, [])
-            
             return redirect('shop:order_success', reference=order.reference)
-        except Exception as e:
-            messages.error(request, f"Erreur: {e}")
     
     subtotal = cart_subtotal(cart)
-    delivery_fee = Decimal('0') if subtotal >= Decimal('15000') else Decimal('1500')
-    
     return render(request, 'shop/checkout.html', {
         'cart': cart,
         'subtotal': subtotal,
-        'delivery_fee': delivery_fee,
+        'delivery_fee': _calculate_delivery_fee(subtotal),
     })
 
 
