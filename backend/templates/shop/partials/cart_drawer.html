@@ -1,0 +1,62 @@
+{% load static %}{% load humanize %}
+<div class="cart-overlay" id="cart-overlay"></div>
+<aside class="cart-drawer" id="cart-drawer" data-testid="cart-drawer">
+  <div class="cart-header">
+    <h2>Votre panier</h2>
+    <button class="icon-btn" id="cart-close" data-testid="cart-close-btn" aria-label="Fermer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  
+  <div class="cart-body" id="cart-body-content">
+    {% if cart_items %}
+      {% for item in cart_items %}
+        <div class="cart-item">
+          <div class="cart-item-img">
+            {% if item.image %}<img src="{{ item.image }}" alt="{{ item.name }}">{% endif %}
+          </div>
+          <div class="cart-item-info">
+            <h4>{{ item.name }}</h4>
+            {% if item.embroidery_name %}
+              <p class="cart-item-embroidery">✦ Brodé : <span>{{ item.embroidery_name }}</span></p>
+            {% endif %}
+            <div class="cart-item-controls">
+              <div class="qty-control">
+                <button type="button" data-cart-qty="-1" data-cart-index="{{ forloop.counter0 }}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span>{{ item.quantity }}</span>
+                <button type="button" data-cart-qty="1" data-cart-index="{{ forloop.counter0 }}">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+              <span class="cart-item-price">{{ item.price|floatformat:0 }} F</span>
+            </div>
+          </div>
+          <button type="button" class="cart-item-remove" data-cart-remove="{{ forloop.counter0 }}" aria-label="Supprimer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="cart-empty">
+        <div class="symbol">✦</div>
+        <h3>Votre panier est vide</h3>
+        <p>Découvrez nos tapis personnalisés.</p>
+      </div>
+    {% endif %}
+  </div>
+  
+  <div id="cart-footer-content">
+    {% if cart_items %}
+      <div class="cart-footer">
+        <div class="cart-summary">
+          <span>Sous-total</span>
+          <span class="value">{{ cart_subtotal|floatformat:0 }} F CFA</span>
+        </div>
+        <a href="{% url 'shop:checkout' %}" class="btn-emerald" data-testid="cart-checkout-btn">Passer commande</a>
+        <button type="button" class="btn-ghost" onclick="closeCart()">Continuer mes achats</button>
+      </div>
+    {% endif %}
+  </div>
+</aside>

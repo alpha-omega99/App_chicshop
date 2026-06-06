@@ -1,0 +1,116 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Personnaliser mon tapis — ChicShop+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .personalize-grid { display:grid; grid-template-columns:1fr; gap:40px; align-items:flex-start; }
+  @media (min-width:1024px) { .personalize-grid { grid-template-columns:3fr 2fr; gap:48px; } }
+  
+  .rug-preview-large { aspect-ratio:4/5; border-radius:32px; display:flex; align-items:center; justify-content:center; position:relative;
+    box-shadow: inset 0 0 0 3px rgba(212,175,55,0.6), inset 0 0 0 12px rgba(255,255,255,0.35), inset 0 0 0 15px rgba(212,175,55,0.45), 0 40px 80px -30px rgba(26,60,47,0.45);
+    border-top-left-radius:50% 28%; border-top-right-radius:50% 28%; border-bottom-left-radius:22% 6%; border-bottom-right-radius:22% 6%;
+    transition: background 0.5s;
+  }
+  .rug-preview-large .content { text-align:center; padding:0 48px; position:relative; z-index:2; }
+  .rug-preview-large .name { font-family:'Amiri',serif; font-size:64px; color:var(--gold); text-shadow:0 2px 3px rgba(0,0,0,0.3); font-weight:700; }
+  @media (min-width:768px) { .rug-preview-large .name { font-size:80px; } }
+  .rug-preview-large .sub { margin-top:16px; font-size:11px; letter-spacing:.2em; color:rgba(255,255,255,0.95); }
+  
+  .control-section { margin-bottom:32px; }
+  .control-section label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.2em; color:rgba(26,60,47,0.7); margin-bottom:12px; font-weight:500; }
+  .name-input { width:100%; border-radius:9999px; border:1px solid var(--line); padding:18px 24px; font-family:'Amiri',serif; font-size:24px; color:var(--gold); outline:none; background:var(--white); }
+  .name-input:focus { border-color:rgba(26,60,47,0.4); }
+  
+  .color-pills { display:flex; flex-wrap:wrap; gap:8px; }
+  .color-pill { display:flex; align-items:center; gap:8px; padding:6px 16px 6px 6px; border:1px solid var(--line); border-radius:9999px; cursor:pointer; transition:all .2s; background:var(--white); }
+  .color-pill.active { border-color:var(--emerald); background:rgba(26,60,47,0.05); }
+  .color-pill .swatch { width:28px; height:28px; border-radius:50%; border:1px solid rgba(255,255,255,0.4); }
+  .color-pill .name { font-size:13px; }
+  
+  .tapis-list { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; max-height:320px; overflow-y:auto; }
+  .tapis-option { display:flex; gap:12px; align-items:center; padding:12px; border-radius:16px; border:1px solid var(--line); cursor:pointer; transition:all .2s; background:var(--white); text-align:left; }
+  .tapis-option:hover { border-color:rgba(26,60,47,0.4); }
+  .tapis-option.active { border-color:var(--emerald); background:var(--rose-50); }
+  .tapis-option .img { width:56px; height:56px; border-radius:8px; background:var(--bone-100); overflow:hidden; flex-shrink:0; }
+  .tapis-option .img img { width:100%; height:100%; object-fit:cover; }
+  .tapis-option .info { min-width:0; }
+  .tapis-option .name { font-family:'Cormorant Garamond',serif; font-size:14px; color:var(--emerald); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tapis-option .price { font-size:11px; color:var(--ink-light); margin-top:2px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section>
+  <div class="container">
+    <div class="section-center">
+      <span class="eyebrow">Personnalisation</span>
+      <h2 style="font-size:64px;">Créez votre <em>tapis unique</em></h2>
+      <p>Choisissez la couleur, brodez le prénom — l'artisanat fait le reste. Livré sous 5 à 7 jours.</p>
+    </div>
+    
+    <div class="personalize-grid">
+      <!-- Live preview -->
+      <div>
+        <div class="rug-preview-large" id="rug-shape-preview" style="background:linear-gradient(180deg, #E5B3B3 0%, #D89595 60%, #C56F6F 100%);">
+          <div class="content">
+            <p class="name" id="personalize-preview" data-testid="personalize-preview">Fatima</p>
+            <p class="sub">~ Brodé main à Abidjan ~</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Controls -->
+      <div>
+        <div class="control-section">
+          <label>Prénom à broder</label>
+          <input type="text" id="personalize-name" class="name-input" value="Fatima" maxlength="18" placeholder="Tapez le prénom…" data-testid="personalize-name-input">
+          <p style="font-size:11px;color:var(--ink-light);margin-top:8px;">18 caractères max · Aminata vous proposera l'écriture arabe sur WhatsApp.</p>
+        </div>
+        
+        <div class="control-section">
+          <label>Couleur du tapis</label>
+          <div class="color-pills">
+            <button type="button" class="color-pill active" data-color="rose" data-testid="personalize-color-rose">
+              <span class="swatch" style="background:#E5B3B3"></span><span class="name">Rose poudré</span>
+            </button>
+            <button type="button" class="color-pill" data-color="emerald" data-testid="personalize-color-emerald">
+              <span class="swatch" style="background:#1A3C2F"></span><span class="name">Émeraude</span>
+            </button>
+            <button type="button" class="color-pill" data-color="bone" data-testid="personalize-color-bone">
+              <span class="swatch" style="background:#F2EBE5"></span><span class="name">Ivoire</span>
+            </button>
+            <button type="button" class="color-pill" data-color="gold" data-testid="personalize-color-gold">
+              <span class="swatch" style="background:#D4AF37"></span><span class="name">Or royal</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="control-section">
+          <label>Modèle de tapis</label>
+          <div class="tapis-list">
+            {% for p in tapis_products %}
+              <button type="button" class="tapis-option {% if forloop.first %}active{% endif %}" data-tapis="{{ p.slug }}" data-testid="personalize-tapis-{{ p.slug }}">
+                <div class="img">
+                  {% if p.image_url %}<img src="{{ p.image_url }}" alt="{{ p.name }}">{% endif %}
+                </div>
+                <div class="info">
+                  <div class="name">{{ p.name }}</div>
+                  <div class="price">{{ p.price|floatformat:0 }} F CFA</div>
+                </div>
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+        
+        <button type="button" class="btn-emerald" id="personalize-add-btn" data-default-slug="{{ tapis_products.0.slug }}" data-testid="personalize-add-btn" style="width:100%;">
+          ✦ Ajouter au panier
+        </button>
+        <a href="{% url 'shop:catalog_category' 'tapis' %}" class="btn-ghost" style="width:100%;margin-top:8px;">
+          Voir tous les tapis
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}{% if current_category %}{{ current_category.name }} · {% endif %}Boutique — ChicShop+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .catalog-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:40px; }
+  .catalog-head h1 { font-size:48px; }
+  @media (min-width:768px) { .catalog-head h1 { font-size:64px; } }
+  .filter-pills { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:40px; }
+  .filter-pill { padding:8px 20px; border-radius:9999px; font-size:13px; background:var(--bone-100); color:var(--ink-light); transition:all .2s; }
+  .filter-pill:hover { background:var(--rose-100); }
+  .filter-pill.active { background:var(--emerald); color:var(--white); }
+  .sort-select { border:1px solid var(--line); background:var(--white); padding:10px 20px; border-radius:9999px; font-size:14px; cursor:pointer; }
+  .empty-state { text-align:center; padding:80px 20px; }
+  .empty-state .symbol { font-size:48px; color:var(--rose-300); font-family:'Cormorant Garamond',serif; margin-bottom:16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section>
+  <div class="container">
+    <div class="breadcrumbs">
+      <a href="{% url 'shop:home' %}">Accueil</a> ·
+      <a href="{% url 'shop:catalog' %}">Boutique</a>
+      {% if current_category %} · <span>{{ current_category.name }}</span>{% endif %}
+    </div>
+    
+    <div class="catalog-head">
+      <div>
+        <h1>
+          {% if search_query %}
+            Résultats pour <em>"{{ search_query }}"</em>
+          {% elif current_category %}
+            {{ current_category.name }}
+          {% else %}
+            Notre <em>boutique</em>
+          {% endif %}
+        </h1>
+        <p style="font-size:14px;color:var(--ink-light);margin-top:8px;">{{ products|length }} produit{{ products|length|pluralize }}</p>
+      </div>
+      <form method="get">
+        {% if current_category %}<input type="hidden" name="category" value="{{ current_category.slug }}">{% endif %}
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        <select name="sort" class="sort-select" onchange="this.form.submit()" data-testid="catalog-sort">
+          <option value="featured" {% if sort == 'featured' %}selected{% endif %}>Mis en avant</option>
+          <option value="price-asc" {% if sort == 'price-asc' %}selected{% endif %}>Prix croissant</option>
+          <option value="price-desc" {% if sort == 'price-desc' %}selected{% endif %}>Prix décroissant</option>
+          <option value="rating" {% if sort == 'rating' %}selected{% endif %}>Mieux notés</option>
+        </select>
+      </form>
+    </div>
+    
+    <div class="filter-pills">
+      <a href="{% url 'shop:catalog' %}" class="filter-pill {% if not current_category %}active{% endif %}">Tout</a>
+      {% for cat in categories %}
+        <a href="{% url 'shop:catalog_category' cat.slug %}" class="filter-pill {% if current_category.slug == cat.slug %}active{% endif %}">
+          {{ cat.icon }} {{ cat.name }}
+        </a>
+      {% endfor %}
+    </div>
+    
+    {% if products %}
+      <div class="products-grid">
+        {% for product in products %}
+          {% include 'shop/partials/product_card.html' %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="symbol">✦</div>
+        <h2 style="font-size:24px;">Aucun produit trouvé.</h2>
+        <p style="color:var(--ink-light);margin-top:8px;">Essayez une autre catégorie ou recherche.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

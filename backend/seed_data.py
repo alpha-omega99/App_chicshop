@@ -17,12 +17,12 @@ TAPIS_IMG_2 = "https://images.pexels.com/photos/7249335/pexels-photo-7249335.jpe
 TAPIS_IMG_3 = "https://images.pexels.com/photos/34982280/pexels-photo-34982280.jpeg?auto=compress&cs=tinysrgb&w=800"
 
 # Images du repo GitHub
-LOCAL_TAPIS_1 = "/images/banniere.png"
-LOCAL_TAPIS_2 = "/images/tapis_bannier.png"
-LOCAL_TAPIS_3 = "/images/tapisban.png"
-LOCAL_TAPIS_4 = "/images/banntapis.png"
-LOCAL_TAPIS_5 = "/images/bantapis2.png"
-LOCAL_TAPIS_6 = "/images/bantapis3.png"
+LOCAL_TAPIS_1 = "/static/shop/images/banniere.png"
+LOCAL_TAPIS_2 = "/static/shop/images/tapis_bannier.png"
+LOCAL_TAPIS_3 = "/static/shop/images/tapisban.png"
+LOCAL_TAPIS_4 = "/static/shop/images/banntapis.png"
+LOCAL_TAPIS_5 = "/static/shop/images/bantapis2.png"
+LOCAL_TAPIS_6 = "/static/shop/images/bantapis3.png"
 
 
 def seed():

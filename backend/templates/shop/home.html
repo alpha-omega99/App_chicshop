@@ -1,0 +1,249 @@
+{% extends 'shop/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <span class="eyebrow">✦ Artisanat · Brodé main · Abidjan</span>
+      <h1>Le tapis qui<br><em>porte son nom.</em></h1>
+      <p class="lead">
+        Offrez un moment de paix unique. Nos tapis de prière sont brodés à la main avec votre prénom en calligraphie dorée — un cadeau qui marque les cœurs pour l'Aïd, le mariage et le Hajj.
+      </p>
+      <div class="hero-actions">
+        <a href="{% url 'shop:personalize' %}" class="btn-emerald" data-testid="hero-create-btn">
+          ✦ Créer mon tapis unique
+        </a>
+        <a href="{% url 'shop:catalog' %}" class="btn-ghost">
+          Voir la galerie →
+        </a>
+      </div>
+      <div class="hero-social">
+        <div class="avatars">
+          <div class="avatar" style="background:#E5B3B3">F</div>
+          <div class="avatar" style="background:#F7DEDE">A</div>
+          <div class="avatar" style="background:#D4AF37">M</div>
+          <div class="avatar" style="background:#B8CDC1">K</div>
+        </div>
+        <div class="hero-social-text">
+          <p>{{ stats.families_served }}+ familles</p>
+          <p>★★★★★ 4.9/5 · 2 000 avis</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Live Preview -->
+    <div class="hero-preview-wrap">
+      <div class="rug-preview-wrap">
+        <div class="rug-badge"><span class="chip">✦ Nouveau</span></div>
+        <div class="rug-price">
+          <p>À partir de</p>
+          <p>8 990 F CFA</p>
+        </div>
+        
+        <div class="rug-shape">
+          <div class="rug-content">
+            <p class="rug-name" id="hero-name-preview" data-testid="hero-name-preview">Fatima</p>
+            <p class="rug-sub">~ Personnalisation dorée ~</p>
+          </div>
+        </div>
+        
+        <div class="hero-personalize">
+          <input type="text" id="hero-name-input" value="Fatima" maxlength="18" placeholder="Tapez un prénom…" data-testid="hero-name-input">
+          <button onclick="window.location.href='{% url 'shop:personalize' %}'" data-testid="hero-customize-btn">Commander</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES BENTO -->
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Nos univers</span>
+        <h2>Explorez la <em>collection</em></h2>
+      </div>
+      <a href="{% url 'shop:catalog' %}" class="section-link">Voir tout →</a>
+    </div>
+    
+    <div class="bento">
+      {% for cat in categories %}
+        <a href="{% url 'shop:catalog_category' cat.slug %}" class="bento-card bento-card-{{ forloop.counter }}" data-testid="category-card-{{ cat.slug }}"
+          style="
+            {% if forloop.counter == 1 %}background:var(--emerald);color:var(--white);
+            {% elif forloop.counter == 2 %}background:var(--rose-100);
+            {% elif forloop.counter == 3 %}background:var(--bone-100);
+            {% else %}background:var(--rose-300);color:var(--emerald);
+            {% endif %}
+          ">
+          <div>
+            <div class="icon">{{ cat.icon }}</div>
+            <h3 style="color:inherit">{{ cat.name }}</h3>
+            <p>{{ cat.description }}</p>
+          </div>
+          <div class="bento-arrow">→</div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- PACKS SPIRITUELS -->
+<section class="packs-section">
+  <div class="container">
+    <div class="section-center">
+      <span class="eyebrow">Pensé comme une expérience</span>
+      <h2>Nos <em>univers spirituels</em></h2>
+      <p>Chaque pack est conçu comme un cadeau — pas un simple produit. Brodé, parfumé, emballé à la main.</p>
+    </div>
+    
+    <div class="packs-grid">
+      {% for p in packs %}
+        <div class="pack-card {% if forloop.counter == 2 %}pack-card-featured{% endif %}" data-testid="pack-card-{{ p.slug }}">
+          {% if forloop.counter == 2 %}
+            <div class="pack-badge">✦ Le choix des familles</div>
+          {% endif %}
+          <div class="pack-emoji">{{ p.emoji|default:'✦' }}</div>
+          <h3>{{ p.name }}</h3>
+          <p class="tagline">{{ p.tagline }}</p>
+          <div class="pack-price">
+            <span class="main">{{ p.price|floatformat:0 }}</span>
+            <span class="unit">F CFA</span>
+            {% if p.original_price %}
+              <span class="original">{{ p.original_price|floatformat:0 }} F</span>
+            {% endif %}
+          </div>
+          <ul class="pack-list">
+            {% for item in p.included_items|slice:":6" %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+          <div class="pack-actions">
+            <button type="button" class="btn-primary" data-add-cart="{{ p.slug }}" data-testid="pack-add-{{ p.slug }}">Choisir ce pack</button>
+            <a href="{% url 'shop:product_detail' p.slug %}" class="btn-secondary">Détails</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+    <p class="packs-footer">
+      🎁 Emballage cadeau offert · 📦 Livraison Abidjan · Code <strong>CHICSHOP15</strong> pour -15%
+    </p>
+  </div>
+</section>
+
+<!-- FLASH SALE -->
+{% if flash_products %}
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">✦ Vente flash</span>
+        <h2>Promotions <em>éphémères</em></h2>
+      </div>
+    </div>
+    <div class="products-grid">
+      {% for p in flash_products %}
+        {% include 'shop/partials/product_card.html' with product=p %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- FEATURED -->
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Best-sellers</span>
+        <h2>Les plus <em>populaires</em></h2>
+      </div>
+      <a href="{% url 'shop:catalog' %}" class="section-link">Voir tout →</a>
+    </div>
+    <div class="products-grid">
+      {% for p in featured_products %}
+        {% include 'shop/partials/product_card.html' with product=p %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- EDITORIAL -->
+<section>
+  <div class="container">
+    <div class="editorial-grid">
+      <div class="editorial-card">
+        <img src="https://images.pexels.com/photos/7129561/pexels-photo-7129561.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Collection Hajj">
+        <div class="editorial-card-overlay"></div>
+        <div class="editorial-card-text">
+          <span class="eyebrow">Collection Hajj</span>
+          <h3>Le voyage <em>sacré</em> commence ici.</h3>
+          <a href="{% url 'shop:catalog' %}">Découvrir →</a>
+        </div>
+      </div>
+      <div class="editorial-card editorial-card-light">
+        <div class="calli-bg">بسم الله</div>
+        <span class="eyebrow">Broderie d'or</span>
+        <h3>Votre prénom, en <em>calligraphie dorée.</em></h3>
+        <a href="{% url 'shop:personalize' %}">Créer mon tapis →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+{% if reviews %}
+<section class="testimonials-section">
+  <div class="container">
+    <div class="section-center">
+      <span class="eyebrow">La preuve par 2 000+</span>
+      <h2>Ce qu'en disent <em>nos sœurs</em></h2>
+    </div>
+    <div class="testimonials-grid">
+      {% for r in reviews %}
+        <div class="testimonial">
+          <div class="testimonial-head">
+            <div class="testimonial-avatar">{{ r.initial }}</div>
+            <div>
+              <div class="testimonial-name">{{ r.name }}</div>
+              <div class="testimonial-city">{{ r.city }}</div>
+            </div>
+          </div>
+          <div class="testimonial-stars">{% for _ in "12345"|make_list %}{% if forloop.counter <= r.rating %}★{% endif %}{% endfor %}</div>
+          <p class="testimonial-text">"{{ r.comment }}"</p>
+          <p class="testimonial-time">{{ r.time_ago }} · Lu 📖</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- STATS -->
+<section>
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-value">{{ stats.families_served }}+</div>
+        <div class="stat-label">Familles satisfaites</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ stats.today_sales }}</div>
+        <div class="stat-label">Personnalisés aujourd'hui</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ stats.avg_rating }}★</div>
+        <div class="stat-label">Note moyenne</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">{{ stats.whatsapp_response_min }} min</div>
+        <div class="stat-label">Réponse WhatsApp</div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

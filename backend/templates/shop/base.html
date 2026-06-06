@@ -1,0 +1,160 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ChicShop+ — Le tapis qui porte son nom{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Tapis de prière brodés à la main, personnalisés avec votre prénom. Packs cadeaux pour l'Aïd, le mariage et le Hajj. Livraison rapide à Abidjan.{% endblock %}">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="{% static 'shop/css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+  {% csrf_token %}
+</head>
+<body>
+
+  <!-- Flash Sale Strip -->
+  <div class="flash-strip" data-testid="flash-strip">
+    <div class="container flash-strip-inner">
+      <span class="flash-spark">✦ Vente flash</span>
+      <span class="flash-sep">|</span>
+      <span>Jusqu'à -40% · Code <strong>CHICSHOP15</strong></span>
+      <span class="flash-sep">|</span>
+      <span class="flash-timer" id="flash-timer">00:00:00</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header glass" id="site-header">
+    <div class="container header-inner">
+      <a href="{% url 'shop:home' %}" class="logo" data-testid="header-logo">
+        <span class="logo-chic">Chic</span><span class="logo-plus">Shop+</span>
+      </a>
+      
+      <nav class="nav-desktop">
+        <a href="{% url 'shop:home' %}" class="nav-link">Accueil</a>
+        <a href="{% url 'shop:catalog_category' 'packs' %}" class="nav-link">Packs cadeaux</a>
+        <a href="{% url 'shop:catalog_category' 'tapis' %}" class="nav-link">Tapis</a>
+        <a href="{% url 'shop:catalog_category' 'chapelet' %}" class="nav-link">Chapelets</a>
+        <a href="{% url 'shop:personalize' %}" class="nav-link nav-link-highlight">Personnaliser</a>
+      </nav>
+      
+      <form action="{% url 'shop:catalog' %}" method="get" class="search-form">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" name="q" placeholder="Rechercher un tapis…" data-testid="header-search-input">
+      </form>
+      
+      <div class="header-actions">
+        <button class="icon-btn" aria-label="Favoris">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+        </button>
+        <button class="icon-btn cart-btn" id="cart-toggle" data-testid="header-cart-btn" aria-label="Panier">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-badge" id="cart-badge" {% if cart_count == 0 %}style="display:none"{% endif %}>{{ cart_count }}</span>
+        </button>
+        <button class="icon-btn menu-btn" id="mobile-menu-btn" data-testid="header-mobile-menu-btn" aria-label="Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="{% url 'shop:home' %}">Accueil</a>
+      <a href="{% url 'shop:catalog_category' 'packs' %}">Packs cadeaux</a>
+      <a href="{% url 'shop:catalog_category' 'tapis' %}">Tapis</a>
+      <a href="{% url 'shop:catalog_category' 'chapelet' %}">Chapelets</a>
+      <a href="{% url 'shop:personalize' %}" class="highlight">Personnaliser</a>
+    </div>
+  </header>
+
+  <!-- Trust Marquee -->
+  <div class="marquee">
+    <div class="marquee-track">
+      <span class="marquee-item">Brodé main à Abidjan</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Livraison express Côte d'Ivoire</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Paiement Wave · Orange Money · Cash</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">2 000+ familles satisfaites</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Note 4.9★ · 2 000 avis</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Emballage cadeau offert</span><span class="marquee-spark">✦</span>
+      <!-- Duplicate for seamless loop -->
+      <span class="marquee-item">Brodé main à Abidjan</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Livraison express Côte d'Ivoire</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Paiement Wave · Orange Money · Cash</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">2 000+ familles satisfaites</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Note 4.9★ · 2 000 avis</span><span class="marquee-spark">✦</span>
+      <span class="marquee-item">Emballage cadeau offert</span><span class="marquee-spark">✦</span>
+    </div>
+  </div>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="logo">
+          <span class="logo-chic" style="color:#fff">Chic</span><span class="logo-plus">Shop+</span>
+        </div>
+        <p>Le tapis qui porte son nom. Artisanat islamique d'Abidjan, brodé main avec amour pour les moments qui comptent.</p>
+        <div class="social-icons">
+          <a href="#" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="https://wa.me/2250700000000" target="_blank" aria-label="WhatsApp">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </a>
+          <a href="mailto:hello@chicshop.ci" aria-label="Email">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
+        </div>
+      </div>
+      
+      <div class="footer-col">
+        <h4>Boutique</h4>
+        <ul>
+          <li><a href="{% url 'shop:catalog_category' 'packs' %}">Packs cadeaux</a></li>
+          <li><a href="{% url 'shop:catalog_category' 'tapis' %}">Tapis de prière</a></li>
+          <li><a href="{% url 'shop:catalog_category' 'chapelet' %}">Chapelets</a></li>
+          <li><a href="{% url 'shop:catalog_category' 'coran' %}">Coran</a></li>
+          <li><a href="{% url 'shop:personalize' %}">Personnaliser</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <ul class="contact-list">
+          <li>📍 Abidjan, Côte d'Ivoire</li>
+          <li>📞 +225 07 00 00 00 00</li>
+          <li>✉️ hello@chicshop.ci</li>
+        </ul>
+        <a href="{% url 'shop:personalize' %}" class="btn-rose btn-sm">✦ Créer mon tapis</a>
+      </div>
+    </div>
+    
+    <div class="footer-bottom container">
+      <p>© 2026 ChicShop+ · Tous droits réservés</p>
+      <p class="italic">Le tapis qui porte son nom.</p>
+    </div>
+  </footer>
+
+  <!-- WhatsApp FAB -->
+  <a href="https://wa.me/2250700000000?text=Bonjour%20ChicShop%2C%20je%20suis%20intéressé(e)%20par%20vos%20tapis" target="_blank" class="whatsapp-fab" data-testid="whatsapp-fab" aria-label="WhatsApp">
+    <span class="wa-tooltip">Aminata répond en 5 min ✦</span>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+  </a>
+
+  <!-- Cart Drawer -->
+  {% include 'shop/partials/cart_drawer.html' %}
+
+  <!-- Toast Notifications -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <script src="{% static 'shop/js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

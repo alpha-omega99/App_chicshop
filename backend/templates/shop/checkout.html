@@ -1,0 +1,164 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Finaliser ma commande — ChicShop+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .checkout-grid { display:grid; grid-template-columns:1fr; gap:32px; }
+  @media (min-width:1024px) { .checkout-grid { grid-template-columns:2fr 1fr; } }
+  .form-card { background:var(--white); border-radius:24px; padding:24px; border:1px solid var(--line); }
+  .form-card h2 { font-size:24px; margin-bottom:20px; }
+  .form-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+  @media (min-width:640px) { .form-grid { grid-template-columns:1fr 1fr; } }
+  .form-grid .full { grid-column:1 / -1; }
+  
+  .payment-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+  @media (min-width:640px) { .payment-grid { grid-template-columns:repeat(3,1fr); } }
+  .payment-option { padding:16px; border-radius:24px; border:1px solid var(--line); cursor:pointer; transition:all .2s; background:var(--white); text-align:left; }
+  .payment-option:hover { border-color:rgba(26,60,47,0.4); }
+  .payment-option.active { border-color:var(--emerald); background:rgba(26,60,47,0.05); }
+  .payment-option .emoji { font-size:24px; margin-bottom:8px; }
+  .payment-option .label { font-weight:500; color:var(--emerald); }
+  
+  .summary-card { background:var(--white); border-radius:24px; padding:24px; border:1px solid var(--line); position:sticky; top:96px; }
+  .summary-items { max-height:240px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }
+  .summary-item { display:flex; gap:12px; font-size:13px; }
+  .summary-item-img { width:48px; height:48px; border-radius:8px; background:var(--bone-100); overflow:hidden; flex-shrink:0; }
+  .summary-item-img img { width:100%; height:100%; object-fit:cover; }
+  .summary-item-info { flex:1; min-width:0; }
+  .summary-item-info .name { font-weight:500; color:var(--emerald); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .summary-item-info .embr { font-size:11px; color:var(--gold-600); }
+  .summary-item-info .qty { font-size:11px; color:var(--ink-light); }
+  .summary-item .price { font-size:13px; color:var(--emerald); white-space:nowrap; }
+  
+  .promo-row { display:flex; gap:8px; margin-bottom:16px; }
+  .promo-row input { flex:1; border:1px solid var(--line); border-radius:9999px; padding:8px 16px; font-size:13px; outline:none; }
+  .promo-row button { padding:8px 16px; border-radius:9999px; background:var(--emerald); color:var(--white); font-size:13px; }
+  
+  .summary-line { display:flex; justify-content:space-between; font-size:14px; color:var(--ink-light); padding-top:12px; }
+  .summary-line.discount { color:var(--gold-600); }
+  .summary-total { display:flex; justify-content:space-between; font-size:18px; font-weight:500; color:var(--emerald); border-top:1px solid var(--line); padding-top:12px; margin-top:12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section>
+  <div class="container">
+    <div class="section-center">
+      <span class="eyebrow">Finalisation</span>
+      <h2 style="font-size:56px;">Votre <em>commande</em></h2>
+    </div>
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="toast {{ message.tags }}" style="margin-bottom:20px;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    
+    <form method="post" action="{% url 'shop:checkout' %}">
+      {% csrf_token %}
+      <input type="hidden" name="promo_code" id="promo-code-hidden" value="">
+      
+      <div class="checkout-grid">
+        <div>
+          <div class="form-card" style="margin-bottom:24px;">
+            <h2>Informations de livraison</h2>
+            <div class="form-grid">
+              <input type="text" name="first_name" placeholder="Prénom *" class="input-pill" required data-testid="checkout-firstname">
+              <input type="text" name="last_name" placeholder="Nom" class="input-pill" data-testid="checkout-lastname">
+              <input type="tel" name="phone" placeholder="Téléphone WhatsApp *" class="input-pill" required data-testid="checkout-phone">
+              <input type="email" name="email" placeholder="Email" class="input-pill" data-testid="checkout-email">
+              <input type="text" name="city" placeholder="Ville" class="input-pill" value="Abidjan" data-testid="checkout-city">
+              <input type="text" name="address" placeholder="Adresse, quartier, repère *" class="input-pill full" required data-testid="checkout-address">
+              <textarea name="instructions" rows="2" placeholder="Note pour le livreur (optionnel)" class="textarea-pill full"></textarea>
+            </div>
+          </div>
+          
+          <div class="form-card">
+            <h2>Mode de paiement</h2>
+            <div class="payment-grid">
+              <label class="payment-option active" data-testid="checkout-payment-wave">
+                <input type="radio" name="payment_method" value="wave" checked style="display:none">
+                <div class="emoji">🌊</div>
+                <div class="label">Wave</div>
+              </label>
+              <label class="payment-option" data-testid="checkout-payment-orange_money">
+                <input type="radio" name="payment_method" value="orange_money" style="display:none">
+                <div class="emoji">🍊</div>
+                <div class="label">Orange Money</div>
+              </label>
+              <label class="payment-option" data-testid="checkout-payment-cash">
+                <input type="radio" name="payment_method" value="cash" style="display:none">
+                <div class="emoji">💵</div>
+                <div class="label">Cash à la livraison</div>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <div class="summary-card">
+            <h2>Récapitulatif</h2>
+            <div class="summary-items">
+              {% for item in cart %}
+                <div class="summary-item">
+                  <div class="summary-item-img">
+                    {% if item.image %}<img src="{{ item.image }}" alt="">{% endif %}
+                  </div>
+                  <div class="summary-item-info">
+                    <div class="name">{{ item.name }}</div>
+                    {% if item.embroidery_name %}
+                      <div class="embr">✦ <span style="font-family:'Amiri',serif;">{{ item.embroidery_name }}</span></div>
+                    {% endif %}
+                    <div class="qty">×{{ item.quantity }}</div>
+                  </div>
+                  <span class="price">{{ item.price|floatformat:0 }} F</span>
+                </div>
+              {% endfor %}
+            </div>
+            
+            <div class="promo-row">
+              <input type="text" id="promo-input" placeholder="Code promo" data-testid="checkout-promo-input">
+              <input type="hidden" id="promo-amount" value="{{ subtotal }}">
+              <button type="button" id="promo-apply" data-testid="checkout-promo-apply">Appliquer</button>
+            </div>
+            
+            <div style="border-top:1px solid var(--line); padding-top:12px;">
+              <div class="summary-line"><span>Sous-total</span><span>{{ subtotal|floatformat:0 }} F</span></div>
+              <div class="summary-line discount" id="discount-display" style="display:none;">
+                <span>Remise</span><span class="value">-0 F</span>
+              </div>
+              <div class="summary-line">
+                <span>Livraison</span>
+                <span>{% if delivery_fee == 0 %}Offerte{% else %}{{ delivery_fee|floatformat:0 }} F{% endif %}</span>
+              </div>
+              <div class="summary-total">
+                <span>Total</span>
+                <span id="total-display" data-subtotal="{{ subtotal }}" data-delivery="{{ delivery_fee }}">{{ subtotal|add:delivery_fee|floatformat:0 }} F CFA</span>
+              </div>
+            </div>
+            
+            <button type="submit" class="btn-emerald" style="width:100%;margin-top:20px;" data-testid="checkout-submit-btn">
+              Confirmer la commande
+            </button>
+            <p style="font-size:11px;color:var(--ink-light);text-align:center;margin-top:12px;">
+              Aminata vous contactera pour finaliser le paiement
+            </p>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+  // Payment option toggle
+  document.querySelectorAll('.payment-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('active'));
+      opt.classList.add('active');
+      opt.querySelector('input').checked = true;
+    });
+  });
+</script>
+{% endblock %}
